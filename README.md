@@ -1,26 +1,8 @@
 # YOLO-LAB
 
-YOLO 模型训练与推理工具集，包含命令行和图形界面两种工作流。
+YOLO 模型训练与推理工具集。
 
-## 项目结构
-
-| 目录 | 说明 | 链接 |
-|------|------|------|
-| `cli/` | YOLO 命令行训练与推理工具 | [cli/README.md](cli/README.md) |
-| `gui/` | YOLO 图形化界面 (PyQt6) | [gui/README.md](gui/README.md) |
-
-## 快速开始
-
-### GUI（推荐）
-```bash
-cd gui
-bash setup.sh
-python gui/main.py
-```
-
-### CLI
-```bash
-cd cli
-pip install -r requirements.txt
-python scripts/train_segment.py
-```
+| 子项目 | 说明 | 仓库 |
+|--------|------|------|
+| `gui/` | 图形化界面 (PySide6) | [YOLO-LAB-GUI](https://github.com/Liujingze11/YOLO-LAB-GUI) |
+| `cli/` | 命令行工具 | [YOLO-LAB-CLI](https://github.com/Liujingze11/YOLO-LAB-CLI) |
