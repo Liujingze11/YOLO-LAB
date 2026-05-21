@@ -11,6 +11,7 @@ Command-line YOLO segmentation training tool built on Ultralytics.
 - Automatic validation with CSV logging (overall + per-class metrics)
 - Experiment isolation: each run creates independent result directories and logs
 - CLI parameter overrides (`--epochs`, `--imgsz`, `--batch`, `--device`, `--name`)
+- Auto-detects system language (zh/en/fr/es), with `--lang` override
 
 ## Quick Start
 
@@ -62,6 +63,15 @@ Run `python scripts/train_segment.py` and choose:
 
 ```bash
 python scripts/train_segment.py --epochs 200 --imgsz 1280 --batch 8 --device 0 --name my_experiment
+```
+
+Language is auto-detected from the system locale. Override with `--lang`:
+
+```bash
+python scripts/train_segment.py --lang en   # English
+python scripts/train_segment.py --lang fr   # Français
+python scripts/train_segment.py --lang es   # Español
+python scripts/train_segment.py --lang zh   # 中文
 ```
 
 ## data.yaml Format

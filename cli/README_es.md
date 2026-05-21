@@ -11,6 +11,7 @@ Herramienta de línea de comandos para entrenamiento de segmentación YOLO, basa
 - Validación automática con registro CSV (métricas globales y por clase)
 - Aislamiento de experimentos: cada ejecución crea directorios y registros independientes
 - Parámetros CLI (`--epochs`, `--imgsz`, `--batch`, `--device`, `--name`)
+- Detección automática del idioma del sistema (zh/en/fr/es), con `--lang` para forzar
 
 ## Inicio Rápido
 
@@ -42,6 +43,15 @@ Ejecute `python scripts/train_segment.py` y elija:
 
 ```bash
 python scripts/train_segment.py --epochs 200 --imgsz 1280 --batch 8 --device 0 --name mi_experimento
+```
+
+El idioma se detecta automáticamente. Forzar con `--lang`:
+
+```bash
+python scripts/train_segment.py --lang es   # Español
+python scripts/train_segment.py --lang en   # English
+python scripts/train_segment.py --lang fr   # Français
+python scripts/train_segment.py --lang zh   # 中文
 ```
 
 ## Resultados

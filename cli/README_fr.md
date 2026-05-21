@@ -11,6 +11,7 @@ Outil de formation en ligne de commande pour la segmentation YOLO, basé sur Ult
 - Validation automatique avec journalisation CSV (métriques globales et par classe)
 - Isolation des expériences : chaque exécution crée des répertoires et journaux indépendants
 - Paramètres CLI (`--epochs`, `--imgsz`, `--batch`, `--device`, `--name`)
+- Détection automatique de la langue système (zh/en/fr/es), avec `--lang` pour forcer
 
 ## Démarrage Rapide
 
@@ -42,6 +43,15 @@ Lancez `python scripts/train_segment.py` et choisissez :
 
 ```bash
 python scripts/train_segment.py --epochs 200 --imgsz 1280 --batch 8 --device 0 --name mon_experience
+```
+
+La langue est détectée automatiquement. Forcer avec `--lang` :
+
+```bash
+python scripts/train_segment.py --lang fr   # Français
+python scripts/train_segment.py --lang en   # English
+python scripts/train_segment.py --lang zh   # 中文
+python scripts/train_segment.py --lang es   # Español
 ```
 
 ## Résultats
