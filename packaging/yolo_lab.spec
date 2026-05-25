@@ -79,10 +79,8 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=None)
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
     [],
+    exclude_binaries=True,
     name="YoloLab",
     debug=False,
     bootloader_ignore_signals=False,
@@ -98,4 +96,15 @@ exe = EXE(
     entitlements_file=None,
     icon=str(PROJECT_ROOT / "packaging" / "assets" / "icon.ico")
         if sys.platform == "win32" else str(PROJECT_ROOT / "packaging" / "assets" / "icon.png"),
+)
+
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=False,
+    upx=True,
+    upx_exclude=[],
+    name="YoloLab",
 )
