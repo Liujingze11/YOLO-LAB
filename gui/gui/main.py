@@ -231,6 +231,7 @@ class MainWindow(QWidget):
         self.tr_device.setMinimumWidth(100)
         self.tr_device.setProperty("themeClass", "combo")
         self.tr_device.setStyleSheet(COMBO_STYLE)
+        self.tr_device.currentIndexChanged.connect(self._on_device_selected)
 
         grid = QHBoxLayout()
         grid.setSpacing(28)
@@ -839,6 +840,62 @@ class MainWindow(QWidget):
             self.tr_device.setCurrentIndex(idx)
         else:
             self.tr_device.setCurrentIndex(0)
+
+    def _on_device_selected(self, idx: int) -> None:
+        """Trigger GPU capability check when user selects a GPU device."""
+        device_id = self.tr_device.itemData(idx)
+        if device_id != "gpu":
+            return
+
+        from gui.gpu_manager import check_gpu_capability, GpuDownloadWorker, get_gpu_dir
+        from PySide6.QtWidgets import QMessageBox
+
+        capability = check_gpu_capability()
+
+        if capability["status"] == "needs_download":
+            reply = QMessageBox.question(
+                self, tr("gpu.download_title"),
+                capability["message"],
+                QMessageBox.Yes | QMessageBox.No,
+            )
+            if reply != QMessageBox.Yes:
+                self.tr_device.setCurrentIndex(0)
+                return
+
+            from gui.model_selector import DownloadDialog
+            self._gpu_download_dialog = DownloadDialog("CUDA components", self.window())
+            self._gpu_download_dialog.show()
+
+            RELEASE_URL = "https://github.com/user/yolo_lab_gui/releases/latest/download/gpu_bundle.zip"
+            self._gpu_worker = GpuDownloadWorker(RELEASE_URL, get_gpu_dir())
+            self._gpu_worker.progress.connect(self._gpu_download_dialog.set_progress)
+            self._gpu_worker.finished.connect(self._on_gpu_download_done)
+            self._gpu_worker.error_msg.connect(self._on_gpu_download_error)
+            self._gpu_worker.start()
+
+        elif capability["status"] in ("no_nvidia", "has_amd"):
+            QMessageBox.information(self, tr("gpu.check_title"), capability["message"])
+            self.tr_device.setCurrentIndex(0)
+
+        elif capability["status"] == "macos_mps":
+            pass
+
+    def _on_gpu_download_done(self, success: bool, msg: str) -> None:
+        if self._gpu_download_dialog:
+            self._gpu_download_dialog.accept()
+            self._gpu_download_dialog = None
+        from PySide6.QtWidgets import QMessageBox
+        if success:
+            QMessageBox.information(self, tr("gpu.download_title"), tr("gpu.restart_needed"))
+        else:
+            QMessageBox.critical(self, tr("gpu.download_failed"), msg[:500])
+            QMessageBox.information(self, tr("gpu.download_title"), tr("gpu.install_manual"))
+        self.tr_device.setCurrentIndex(0)
+        self._refresh_devices()
+
+    def _on_gpu_download_error(self, msg: str) -> None:
+        if self._gpu_download_dialog:
+            self._gpu_download_dialog.set_error(msg)
 
     def _apply_config(self, c):
         self.tr_data_yaml.setCurrentText(c.data_yaml)
