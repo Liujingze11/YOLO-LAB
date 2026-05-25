@@ -35,7 +35,7 @@ Name: "cuda"; Description: "CUDA GPU acceleration (requires NVIDIA GPU)"; Types:
 
 [Files]
 Source: "..\..\dist\YoloLab\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\..\dist\gpu_bundle.zip"; DestDir: "{userappdata}\YoloLab\gpu"; Components: cuda; Flags: ignoreversion
+Source: "..\..\dist\gpu_bundle.zip"; DestDir: "{userappdata}\YoloLab\gpu"; Components: cuda; Flags: ignoreversion skipifsourcedoesntexist
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"
