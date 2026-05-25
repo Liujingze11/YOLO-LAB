@@ -32,10 +32,10 @@ jobs:
           APP_VERSION: ${{ github.ref_name }}
 
       - name: Install Inno Setup
-        uses: nebularnoah/setup-iscc@v1
+        run: choco install innosetup --yes
 
       - name: Create installer
-        run: iscc packaging/windows/setup.iss
+        run: '& "C:\Program Files\Inno Setup 6\ISCC.exe" packaging\windows\setup.iss'
         env:
           APP_VERSION: ${{ github.ref_name }}
 
@@ -132,7 +132,7 @@ jobs:
           path: gpu_bundle.zip
 
   release:
-    needs: [build-windows, build-linux, build-macos, build-gpu-bundle]
+    needs: [build-windows, build-linux, build-macos]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     permissions:
