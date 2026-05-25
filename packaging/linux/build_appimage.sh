@@ -35,6 +35,8 @@ Terminal=false
 Type=Application
 Categories=Science;ArtificialIntelligence;
 DESKTOP
+# AppImageTool requires .desktop file at AppDir root too
+cp "$APPDIR/usr/share/applications/yololab.desktop" "$APPDIR/yololab.desktop"
 
 # Copy icon
 cp "$PROJECT_ROOT/packaging/assets/icon.png" \
