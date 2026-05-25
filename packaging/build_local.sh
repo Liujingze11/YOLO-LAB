@@ -32,14 +32,14 @@ pyinstaller --clean --noconfirm packaging/yolo_lab.spec
 # GPU bundle (optional, built separately when --cuda flag is set)
 if [ "$CUDA" = "1" ]; then
     echo "=== Building GPU bundle ==="
-    GPU_DIR="$SCRIPT_DIR/dist/gpu_bundle"
+    GPU_DIR="$PROJECT_ROOT/dist/gpu_bundle"
     rm -rf "$GPU_DIR"
     mkdir -p "$GPU_DIR"
     pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 --target "$GPU_DIR"
-    cd "$SCRIPT_DIR/dist"
+    cd "$PROJECT_ROOT/dist"
     zip -r "gpu_bundle.zip" "gpu_bundle/"
     rm -rf "gpu_bundle/"
-    echo "GPU bundle: $SCRIPT_DIR/dist/gpu_bundle.zip"
+    echo "GPU bundle: $PROJECT_ROOT/dist/gpu_bundle.zip"
 fi
 
 # Platform-specific packaging
@@ -49,5 +49,5 @@ elif [ "$PLATFORM" = "Darwin" ]; then
     bash "$SCRIPT_DIR/macos/build_dmg.sh"
 fi
 
-echo "=== Build complete: packaging/dist/ ==="
-ls -lh "$SCRIPT_DIR/dist/"
+echo "=== Build complete: dist/ ==="
+ls -lh "$PROJECT_ROOT/dist/"

@@ -35,7 +35,7 @@ jobs:
         run: choco install innosetup --yes
 
       - name: Create installer
-        run: '& "C:\Program Files\Inno Setup 6\ISCC.exe" packaging\windows\setup.iss'
+        run: iscc packaging\windows\setup.iss
         env:
           APP_VERSION: ${{ github.ref_name }}
 
