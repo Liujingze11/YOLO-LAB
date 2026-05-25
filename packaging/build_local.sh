@@ -22,16 +22,25 @@ echo "=== Building YoloLab v${VERSION} for ${PLATFORM} ==="
 
 # Install dependencies
 pip install --upgrade pip
-if [ "$CUDA" = "1" ]; then
-    pip install torch --index-url https://download.pytorch.org/whl/cu121
-else
-    pip install torch --index-url https://download.pytorch.org/whl/cpu
-fi
+pip install torch --index-url https://download.pytorch.org/whl/cpu
 pip install ultralytics pyyaml pyinstaller PySide6
 
-# Build with PyInstaller
+# Build with PyInstaller (always CPU for default package)
 cd "$PROJECT_ROOT"
 pyinstaller --clean --noconfirm packaging/yolo_lab.spec
+
+# GPU bundle (optional, built separately when --cuda flag is set)
+if [ "$CUDA" = "1" ]; then
+    echo "=== Building GPU bundle ==="
+    GPU_DIR="$SCRIPT_DIR/dist/gpu_bundle"
+    rm -rf "$GPU_DIR"
+    mkdir -p "$GPU_DIR"
+    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 --target "$GPU_DIR"
+    cd "$SCRIPT_DIR/dist"
+    zip -r "gpu_bundle.zip" "gpu_bundle/"
+    rm -rf "gpu_bundle/"
+    echo "GPU bundle: $SCRIPT_DIR/dist/gpu_bundle.zip"
+fi
 
 # Platform-specific packaging
 if [ "$PLATFORM" = "Linux" ]; then

@@ -31,8 +31,12 @@ Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.i
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
+[Components]
+Name: "cuda"; Description: "CUDA GPU acceleration (requires NVIDIA GPU)"; Types: full custom; Flags: disablenouninstallwarning
+
 [Files]
 Source: "..\dist\YoloLab\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\gpu_bundle.zip"; DestDir: "{userappdata}\YoloLab\gpu"; Components: cuda; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"
