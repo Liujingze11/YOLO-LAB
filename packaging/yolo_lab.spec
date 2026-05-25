@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(SPECPATH).resolve().parent
 
 a = Analysis(
     [str(PROJECT_ROOT / "gui" / "gui" / "main.py")],
