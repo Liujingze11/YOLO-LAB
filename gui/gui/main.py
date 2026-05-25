@@ -14,7 +14,9 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-PRESET_FILE = ROOT / "gui" / "presets.json"
+from gui.paths import get_preset_file
+
+PRESET_FILE = get_preset_file()
 
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QFont, QKeySequence, QShortcut, QTextCursor
@@ -496,34 +498,28 @@ class MainWindow(QWidget):
             QMessageBox.critical(self, tr("msg.title.error"), f"{tr('msg.dataset_not_found')}\n{dataset_dir}")
             return
 
-        script_rel = self.TOOL_SCRIPTS[idx]
-        script = str(ROOT / "tools" / "dataset_tools" / script_rel)
-
-        if not Path(script).is_file():
-            QMessageBox.critical(self, tr("msg.title.error"), f"{tr('msg.tool_not_found')}\n{script}")
-            return
-
-        cmd = [sys.executable, script, "--dataset-dir", dataset_dir]
-
-        # 根据参数页提取参数
+        # Build tool args dict as JSON for the engine-tool subprocess
+        tool_args = {"_tool_idx": idx}
+        if dataset_dir:
+            tool_args["dataset_dir"] = dataset_dir
         spinners = self._tool_param_spinners[idx]
-        if idx == 0:
-            pass  # 创建空标签，无额外参数
-        elif idx == 1:
-            cmd.extend(["--val-ratio", str(spinners["val_ratio"].value() / 100)])
+        if idx == 1:
+            tool_args["val_ratio"] = spinners["val_ratio"].value() / 100.0
         elif idx == 2:
-            cmd.extend(["--val-ratio", str(spinners["val_ratio"].value() / 100),
-                        "--test-ratio", str(spinners["test_ratio"].value() / 100)])
+            tool_args["val_ratio"] = spinners["val_ratio"].value() / 100.0
+            tool_args["test_ratio"] = spinners["test_ratio"].value() / 100.0
         elif idx == 3:
-            cmd.extend(["--interval", str(spinners["interval"].value())])
+            tool_args["interval"] = int(spinners["interval"].value())
         elif idx == 4:
-            cmd.extend(["--val-ratio", str(spinners["val_ratio"].value() / 100)])
+            tool_args["val_ratio"] = spinners["val_ratio"].value() / 100.0
         elif idx == 5:
-            cmd.extend(["--interval", str(spinners["interval"].value())])
+            tool_args["interval"] = int(spinners["interval"].value())
+
+        cmd = [sys.executable, "--engine-tool", json.dumps(tool_args, ensure_ascii=True)]
 
         self.tool_log.clear()
         self._log_append(self.tool_log,
-                         f'<span style="color:#6ec6ff;">{tr("log.info_prefix")}</span>  {tr("tool.log.running", script=script_rel)}')
+                         f'<span style="color:#6ec6ff;">{tr("log.info_prefix")}</span>  {tr("tool.log.running", script=str(idx))}')
 
         self.btn_tool_run.setEnabled(False)
         self.btn_tool_stop.setEnabled(True)
@@ -1173,7 +1169,7 @@ class MainWindow(QWidget):
         self._log_info(tr("train.log.params", epochs=cfg.epochs, imgsz=cfg.imgsz, batch=cfg.batch, device=cfg.device))
 
         cmd = [
-            sys.executable, str(ROOT / "gui" / "train_engine.py"),
+            sys.executable, "--engine-train",
             "--lang", current_lang(),
             "--no-interactive",
             "--mode", str(mode),
@@ -1453,7 +1449,7 @@ class MainWindow(QWidget):
         self._log_info_ir(tr("infer.log.starting", model=model_path))
 
         cmd = [
-            sys.executable, str(ROOT / "gui" / "infer_engine.py"),
+            sys.executable, "--engine-infer",
             "--lang", current_lang(),
             "--model", model_path,
             "--source", source,
@@ -1534,5 +1530,58 @@ def main():
     sys.exit(app.exec())
 
 
+def _run_engine_mode():
+    """Entry point when launched as --engine-{train,infer,tool} by a subprocess."""
+    from gui import train_engine, infer_engine
+
+    mode = sys.argv[1]  # e.g. "--engine-train"
+    # Remove the engine flag so argparse doesn't see it
+    sys.argv.pop(1)
+
+    if mode == "--engine-train":
+        args = train_engine.parse_args()
+        train_engine.run_non_interactive(args)
+    elif mode == "--engine-infer":
+        import gui.infer_engine as infer_engine
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--model", default=infer_engine.BEST_SEG_MODEL)
+        parser.add_argument("--source", default=infer_engine.TEST_IMAGES_DIR)
+        parser.add_argument("--save-dir", default=str(Path(infer_engine.PREDICT_DIR) / "predict_result"))
+        parser.add_argument("--conf", type=float, default=0.406)
+        parser.add_argument("--imgsz", type=int, default=640)
+        parser.add_argument("--lang", default="zh")
+        args = parser.parse_args(sys.argv[1:])
+        infer_engine._loc = infer_engine._load_locale(args.lang)
+        cfg = infer_engine.InferConfig(
+            model_path=args.model, source=args.source, save_dir=args.save_dir,
+            conf=args.conf, imgsz=args.imgsz,
+            task_param_file=str(infer_engine._ENGINE_DIR / "infer_task_params.json"),
+            out_suffix="_overlay.jpg",
+        )
+        inferencer = infer_engine.YOLOInferencer(cfg)
+        inferencer.run()
+    elif mode == "--engine-tool":
+        # Tool args are passed as a JSON string (second argument)
+        import json, importlib
+        tool_args = json.loads(sys.argv[1])
+        tool_idx = tool_args.pop("_tool_idx")
+
+        TOOL_MODULES = [
+            "tools.dataset_tools.create_empty_labels",
+            "tools.dataset_tools.split_train_val.split_random_with_labels",
+            "tools.dataset_tools.split_train_val_test.split_random_with_labels",
+            "tools.dataset_tools.split_train_val.split_every_5th_with_labels",
+            "tools.dataset_tools.split_images_only.split_random_images_only",
+            "tools.dataset_tools.split_images_only.split_every_5th_images_only",
+        ]
+        mod = importlib.import_module(TOOL_MODULES[tool_idx])
+        mod.run(**tool_args)
+    sys.exit(0)
+
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1].startswith("--engine-"):
+        _run_engine_mode()
+    else:
+        main()
