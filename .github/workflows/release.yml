@@ -21,16 +21,9 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies (CPU)
-        if: ${{ !inputs.cuda }}
+      - name: Install dependencies
         run: |
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install ultralytics pyyaml pyinstaller PySide6
-
-      - name: Install dependencies (CUDA)
-        if: ${{ inputs.cuda }}
-        run: |
-          pip install torch --index-url https://download.pytorch.org/whl/cu121
           pip install ultralytics pyyaml pyinstaller PySide6
 
       - name: Build with PyInstaller
@@ -119,8 +112,28 @@ jobs:
           name: YoloLab-${{ github.ref_name }}-${{ runner.arch }}.dmg
           path: packaging/dist/YoloLab-${{ github.ref_name }}-*.dmg
 
+  build-gpu-bundle:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.cuda }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Build GPU bundle
+        run: |
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 --target gpu_bundle
+          zip -r gpu_bundle.zip gpu_bundle/
+
+      - name: Upload GPU bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpu_bundle.zip
+          path: gpu_bundle.zip
+
   release:
-    needs: [build-windows, build-linux, build-macos]
+    needs: [build-windows, build-linux, build-macos, build-gpu-bundle]
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -28,15 +28,22 @@ set APP_VERSION=%VERSION%
 echo === Building YoloLab v%VERSION% for Windows ===
 
 pip install --upgrade pip
-if "%CUDA%"=="1" (
-    pip install torch --index-url https://download.pytorch.org/whl/cu121
-) else (
-    pip install torch --index-url https://download.pytorch.org/whl/cpu
-)
+pip install torch --index-url https://download.pytorch.org/whl/cpu
 pip install ultralytics pyyaml pyinstaller PySide6
 
 cd /d "%PROJECT_ROOT%"
 pyinstaller --clean --noconfirm packaging\yolo_lab.spec
+
+if "%CUDA%"=="1" (
+    echo === Building GPU bundle ===
+    set GPU_DIR=%SCRIPT_DIR%dist\gpu_bundle
+    if exist "%GPU_DIR%" rmdir /s /q "%GPU_DIR%"
+    mkdir "%GPU_DIR%"
+    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 --target "%GPU_DIR%"
+    powershell Compress-Archive -Path "%GPU_DIR%\*" -DestinationPath "%SCRIPT_DIR%dist\gpu_bundle.zip"
+    rmdir /s /q "%GPU_DIR%"
+    echo GPU bundle: %SCRIPT_DIR%dist\gpu_bundle.zip
+)
 
 echo === PyInstaller done, now run Inno Setup to create installer ===
 echo === Open packaging\windows\setup.iss in Inno Setup Compiler ===
