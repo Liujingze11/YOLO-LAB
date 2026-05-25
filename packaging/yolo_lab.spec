@@ -4,12 +4,16 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(SPECPATH).resolve().parent
 
+_binaries = []
+if sys.platform == "linux":
+    _expat_path = Path(sys.prefix) / "lib" / "libexpat.so.1"
+    if _expat_path.is_file():
+        _binaries.append((str(_expat_path), "."))
+
 a = Analysis(
     [str(PROJECT_ROOT / "gui" / "gui" / "main.py")],
     pathex=[str(PROJECT_ROOT)],
-    binaries=[
-        (str(Path(sys.prefix) / "lib" / "libexpat.so.1"), "."),
-    ],
+    binaries=_binaries,
     datas=[
         (str(PROJECT_ROOT / "gui" / "locales"), "locales"),
         (str(PROJECT_ROOT / "gui" / "gui" / "infer_task_params.json"), "gui"),
