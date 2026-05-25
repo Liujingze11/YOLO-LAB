@@ -497,34 +497,28 @@ class MainWindow(QWidget):
             QMessageBox.critical(self, tr("msg.title.error"), f"{tr('msg.dataset_not_found')}\n{dataset_dir}")
             return
 
-        script_rel = self.TOOL_SCRIPTS[idx]
-        script = str(ROOT / "tools" / "dataset_tools" / script_rel)
-
-        if not Path(script).is_file():
-            QMessageBox.critical(self, tr("msg.title.error"), f"{tr('msg.tool_not_found')}\n{script}")
-            return
-
-        cmd = [sys.executable, script, "--dataset-dir", dataset_dir]
-
-        # 根据参数页提取参数
+        # Build tool args dict as JSON for the engine-tool subprocess
+        tool_args = {"_tool_idx": idx}
+        if dataset_dir:
+            tool_args["dataset_dir"] = dataset_dir
         spinners = self._tool_param_spinners[idx]
-        if idx == 0:
-            pass  # 创建空标签，无额外参数
-        elif idx == 1:
-            cmd.extend(["--val-ratio", str(spinners["val_ratio"].value() / 100)])
+        if idx == 1:
+            tool_args["val_ratio"] = spinners["val_ratio"].value() / 100.0
         elif idx == 2:
-            cmd.extend(["--val-ratio", str(spinners["val_ratio"].value() / 100),
-                        "--test-ratio", str(spinners["test_ratio"].value() / 100)])
+            tool_args["val_ratio"] = spinners["val_ratio"].value() / 100.0
+            tool_args["test_ratio"] = spinners["test_ratio"].value() / 100.0
         elif idx == 3:
-            cmd.extend(["--interval", str(spinners["interval"].value())])
+            tool_args["interval"] = int(spinners["interval"].value())
         elif idx == 4:
-            cmd.extend(["--val-ratio", str(spinners["val_ratio"].value() / 100)])
+            tool_args["val_ratio"] = spinners["val_ratio"].value() / 100.0
         elif idx == 5:
-            cmd.extend(["--interval", str(spinners["interval"].value())])
+            tool_args["interval"] = int(spinners["interval"].value())
+
+        cmd = [sys.executable, "--engine-tool", json.dumps(tool_args, ensure_ascii=True)]
 
         self.tool_log.clear()
         self._log_append(self.tool_log,
-                         f'<span style="color:#6ec6ff;">{tr("log.info_prefix")}</span>  {tr("tool.log.running", script=script_rel)}')
+                         f'<span style="color:#6ec6ff;">{tr("log.info_prefix")}</span>  {tr("tool.log.running", script=str(idx))}')
 
         self.btn_tool_run.setEnabled(False)
         self.btn_tool_stop.setEnabled(True)
@@ -1118,7 +1112,7 @@ class MainWindow(QWidget):
         self._log_info(tr("train.log.params", epochs=cfg.epochs, imgsz=cfg.imgsz, batch=cfg.batch, device=cfg.device))
 
         cmd = [
-            sys.executable, str(ROOT / "gui" / "train_engine.py"),
+            sys.executable, "--engine-train",
             "--lang", current_lang(),
             "--no-interactive",
             "--mode", str(mode),
@@ -1398,7 +1392,7 @@ class MainWindow(QWidget):
         self._log_info_ir(tr("infer.log.starting", model=model_path))
 
         cmd = [
-            sys.executable, str(ROOT / "gui" / "infer_engine.py"),
+            sys.executable, "--engine-infer",
             "--lang", current_lang(),
             "--model", model_path,
             "--source", source,
