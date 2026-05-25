@@ -191,5 +191,18 @@
   "tool.log.done": "Ejecución de la herramienta completada",
   "tool.log.failed": "Ejecución de la herramienta fallida",
   "tool.log.cancelled": "Herramienta detenida",
-  "worker.process_failed": "Error al iniciar el proceso: {err}"
+  "worker.process_failed": "Error al iniciar el proceso: {err}",
+    "gpu.check_title": "GPU Acceleration Check",
+    "gpu.checking": "Checking GPU compatibility...",
+    "gpu.download_title": "CUDA Component Download",
+    "gpu.download_prompt": "Detected {name}\nCUDA acceleration components (~{size} GB) need to be downloaded to use GPU training.\nProceed with download?",
+    "gpu.downloading": "Downloading CUDA components...",
+    "gpu.download_done": "Download complete! Please restart the app to enable GPU acceleration.",
+    "gpu.download_failed": "Download failed",
+    "gpu.no_nvidia": "No NVIDIA GPU or CUDA driver detected. This version does not support your device. Training will use CPU.",
+    "gpu.no_amd": "AMD GPU is not currently supported. Training will use CPU.",
+    "gpu.install_manual": "Automatic download failed. Please visit https://pytorch.org to download CUDA 12.1, install it, then restart the app.",
+    "gpu.restart_needed": "Installation complete, please restart the app",
+    "gpu.device_cpu": "CPU",
+    "gpu.device_gpu_download": "GPU (CUDA download required)"
 }

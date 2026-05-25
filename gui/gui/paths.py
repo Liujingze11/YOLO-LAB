@@ -115,3 +115,23 @@ PREDICT_DIR = str(REPO_ROOT / "outputs" / "predict")
 # No default best checkpoint — pick your trained model in the GUI.
 BEST_SEG_MODEL = ""
 TEST_IMAGES_DIR = str(REPO_ROOT / "data" / "dataset" / "images" / "test")
+
+
+def get_user_data_dir() -> Path:
+    """Return the user data directory for persistent files."""
+    return Path.home() / ".local" / "share" / "yolo_lab_gui"
+
+
+def ensure_user_dirs() -> dict:
+    """Create and return user data subdirectories."""
+    data_dir = get_user_data_dir()
+    dirs = {
+        "models": data_dir / "models",
+        "results": data_dir / "results",
+        "logs": data_dir / "logs",
+        "predict": data_dir / "predict",
+        "gpu": data_dir / "gpu",
+    }
+    for d in dirs.values():
+        d.mkdir(parents=True, exist_ok=True)
+    return dirs
