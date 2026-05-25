@@ -14,7 +14,9 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-PRESET_FILE = ROOT / "gui" / "presets.json"
+from .paths import get_preset_file
+
+PRESET_FILE = get_preset_file()
 
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtGui import QFont, QKeySequence, QShortcut, QTextCursor
@@ -1477,5 +1479,58 @@ def main():
     sys.exit(app.exec())
 
 
+def _run_engine_mode():
+    """Entry point when launched as --engine-{train,infer,tool} by a subprocess."""
+    from gui import train_engine, infer_engine
+
+    mode = sys.argv[1]  # e.g. "--engine-train"
+    # Remove the engine flag so argparse doesn't see it
+    sys.argv.pop(1)
+
+    if mode == "--engine-train":
+        args = train_engine.parse_args()
+        train_engine.run_non_interactive(args)
+    elif mode == "--engine-infer":
+        import gui.infer_engine as infer_engine
+        import argparse
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--model", default=infer_engine.BEST_SEG_MODEL)
+        parser.add_argument("--source", default=infer_engine.TEST_IMAGES_DIR)
+        parser.add_argument("--save-dir", default=str(Path(infer_engine.PREDICT_DIR) / "predict_result"))
+        parser.add_argument("--conf", type=float, default=0.406)
+        parser.add_argument("--imgsz", type=int, default=640)
+        parser.add_argument("--lang", default="zh")
+        args = parser.parse_args(sys.argv[1:])
+        infer_engine._loc = infer_engine._load_locale(args.lang)
+        cfg = infer_engine.InferConfig(
+            model_path=args.model, source=args.source, save_dir=args.save_dir,
+            conf=args.conf, imgsz=args.imgsz,
+            task_param_file=str(infer_engine._ENGINE_DIR / "infer_task_params.json"),
+            out_suffix="_overlay.jpg",
+        )
+        inferencer = infer_engine.YOLOInferencer(cfg)
+        inferencer.run()
+    elif mode == "--engine-tool":
+        # Tool args are passed as a JSON string (second argument)
+        import json, importlib
+        tool_args = json.loads(sys.argv[1])
+        tool_idx = tool_args.pop("_tool_idx")
+
+        TOOL_MODULES = [
+            "tools.dataset_tools.create_empty_labels",
+            "tools.dataset_tools.split_train_val.split_random_with_labels",
+            "tools.dataset_tools.split_train_val_test.split_random_with_labels",
+            "tools.dataset_tools.split_train_val.split_every_5th_with_labels",
+            "tools.dataset_tools.split_images_only.split_random_images_only",
+            "tools.dataset_tools.split_images_only.split_every_5th_images_only",
+        ]
+        mod = importlib.import_module(TOOL_MODULES[tool_idx])
+        mod.run(**tool_args)
+    sys.exit(0)
+
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1].startswith("--engine-"):
+        _run_engine_mode()
+    else:
+        main()
