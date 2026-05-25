@@ -7,7 +7,9 @@ PROJECT_ROOT = Path(SPECPATH).resolve().parent
 a = Analysis(
     [str(PROJECT_ROOT / "gui" / "gui" / "main.py")],
     pathex=[str(PROJECT_ROOT)],
-    binaries=[],
+    binaries=[
+        (str(Path(sys.prefix) / "lib" / "libexpat.so.1"), "."),
+    ],
     datas=[
         (str(PROJECT_ROOT / "gui" / "locales"), "locales"),
         (str(PROJECT_ROOT / "gui" / "gui" / "infer_task_params.json"), "gui"),
@@ -46,7 +48,6 @@ a = Analysis(
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
-        "torchvision",
         "torchaudio",
         "PySide6.QtWebEngine",
         "PySide6.QtWebEngineCore",
