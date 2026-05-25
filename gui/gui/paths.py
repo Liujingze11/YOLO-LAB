@@ -6,9 +6,59 @@ Pretrained base models (e.g. yolov8n-seg.pt) use short names so that
 ultralytics auto-downloads them into its cache on first use.
 """
 from pathlib import Path
+import os
+import sys
+import platform
+
+
+def is_frozen() -> bool:
+    """True when running inside a PyInstaller bundle."""
+    return getattr(sys, "frozen", False)
+
+
+def get_app_root() -> Path:
+    """Return the application root directory (works in dev and frozen modes)."""
+    if is_frozen():
+        return Path(sys.executable).parent
+    return Path(__file__).resolve().parent.parent
+
+
+def get_user_data_dir() -> Path:
+    """Platform-standard user data directory for persistence."""
+    app_name = "YoloLab"
+    system = platform.system()
+    if system == "Windows":
+        base = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
+    elif system == "Darwin":
+        base = Path.home() / "Library" / "Application Support"
+    else:
+        base = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share"))
+    return base / app_name
+
+
+def ensure_user_dirs() -> dict:
+    """Create and return user data subdirectories."""
+    data_dir = get_user_data_dir()
+    dirs = {
+        "models": data_dir / "models",
+        "results": data_dir / "results",
+        "logs": data_dir / "logs",
+        "predict": data_dir / "predict",
+    }
+    for d in dirs.values():
+        d.mkdir(parents=True, exist_ok=True)
+    return dirs
+
+
+def get_preset_file() -> Path:
+    """Return the path to presets.json (in user data dir when frozen)."""
+    if is_frozen():
+        return get_user_data_dir() / "presets.json"
+    return Path(__file__).resolve().parent.parent / "gui" / "presets.json"
+
 
 # Repository root: .../yolo_lab_gui
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = get_app_root()
 
 DATA_YAML = str(REPO_ROOT / "data.yaml")
 # Short name → ultralytics auto-downloads to ~/.config/Ultralytics/
