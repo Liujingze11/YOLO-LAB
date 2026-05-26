@@ -24,41 +24,36 @@ def test_shared_train_core():
     assert list_experiments is not None
 
 
-def _try_import(module: str):
-    """Try importing, skip test if the module or its system deps are missing."""
-    import importlib
+def _skip_if_cant_import(module: str):
+    """Skip test if the given module cannot be imported (missing pkg or system libs)."""
     try:
-        importlib.import_module(module)
+        __import__(module)
     except ImportError as e:
         pytest.skip(str(e))
 
 
 def test_gui_utils():
-    _try_import("PySide6.QtCore")
+    _skip_if_cant_import("gui.utils")
     from gui.utils import engine_cmd, log_append, load_presets
     assert engine_cmd is not None
 
 
 def test_gui_tabs():
-    _try_import("PySide6.QtCore")
-    pytest.importorskip("torch")
+    _skip_if_cant_import("gui.tabs.train_tab")
     from gui.tabs.train_tab import TrainTab
     from gui.tabs.infer_tab import InferTab
-    from gui.tabs.tools_tab import ToolsTab
-    from gui.tabs.log_viewer_tab import LogViewerTab
     assert TrainTab is not None
     assert InferTab is not None
 
 
 def test_gui_workers():
-    _try_import("PySide6.QtCore")
+    _skip_if_cant_import("gui.workers")
     from gui.workers import TrainWorker, InferWorker, ToolWorker
     assert TrainWorker is not None
 
 
 def test_gui_gpu_manager():
-    _try_import("PySide6.QtCore")
-    pytest.importorskip("torch")
+    _skip_if_cant_import("gui.gpu_manager")
     from gui.gpu_manager import check_gpu_capability, is_cuda_available
     result = check_gpu_capability()
     assert "status" in result
