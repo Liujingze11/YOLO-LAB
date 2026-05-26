@@ -21,7 +21,12 @@ from shared.train_core import (
 
 # ── i18n ──────────────────────────────────────────────────
 
-LOCALE_DIR = Path(__file__).resolve().parent.parent / "locales"
+from shared.i18n_helper import load_locale as _load_file, t as _t
+
+_LOCALE_DIR = Path(__file__).resolve().parent.parent / "locales"
+
+def _load_locale(lang):
+    return _load_file(_LOCALE_DIR, lang)
 
 
 def _detect_lang():
@@ -34,22 +39,6 @@ def _detect_lang():
     except Exception:
         pass
     return "en"
-
-
-def _load_locale(lang):
-    path = LOCALE_DIR / f"{lang}.json"
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def _t(loc, key, **kwargs):
-    text = loc.get(key, key)
-    if kwargs:
-        try:
-            text = text.format(**kwargs)
-        except (KeyError, ValueError):
-            pass
-    return text
 
 
 _loc = {}

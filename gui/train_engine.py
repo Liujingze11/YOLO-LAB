@@ -6,7 +6,6 @@
 import os
 import sys
 import tempfile
-import json
 import argparse
 from pathlib import Path
 
@@ -44,26 +43,14 @@ from shared.train_core import (
 
 # ── 国际化支持 ──────────────────────────────────────────────
 
+from shared.i18n_helper import load_locale as _load_file, t as _t
+
 _LOCALE_DIR = Path(__file__).resolve().parent / "locales"
 
+_loc: dict = {}
 
 def _load_locale(lang: str) -> dict:
-    path = _LOCALE_DIR / f"{lang}.json"
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def _t(loc: dict, key: str, **kwargs) -> str:
-    text = loc.get(key, key)
-    if kwargs:
-        try:
-            text = text.format(**kwargs)
-        except (KeyError, ValueError):
-            pass
-    return text
-
-
-_loc: dict = {}
+    return _load_file(_LOCALE_DIR, lang)
 
 
 def override_config_from_args(config, args):

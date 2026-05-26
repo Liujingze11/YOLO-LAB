@@ -20,22 +20,13 @@ _ENGINE_DIR = Path(__file__).resolve().parent
 _DEFAULT_TASK_PARAMS = _ENGINE_DIR / "infer_task_params.json"
 
 # ── i18n locale helpers ─────────────────────────────────────
+from shared.i18n_helper import load_locale as _load_file, t as _t
+
 _LOCALE_DIR = Path(__file__).resolve().parent / "locales"
 _loc = None  # set in __main__
 
 def _load_locale(lang: str) -> dict:
-    path = _LOCALE_DIR / f"{lang}.json"
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-def _t(loc: dict, key: str, **kwargs) -> str:
-    text = loc.get(key, key)
-    if kwargs:
-        try:
-            text = text.format(**kwargs)
-        except (KeyError, ValueError):
-            pass
-    return text
+    return _load_file(_LOCALE_DIR, lang)
 
 
 @dataclass

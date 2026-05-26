@@ -135,6 +135,11 @@ class LogViewerTab(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(scroll)
 
+    def showEvent(self, e):
+        super().showEvent(e)
+        self._refresh_lv_csv_list()
+        self._refresh_lv_exp_list()
+
     def _add_to_history(self, key, value):
         if not value:
             return

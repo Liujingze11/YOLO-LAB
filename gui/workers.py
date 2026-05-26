@@ -75,11 +75,42 @@ class _BaseWorker(QThread):
 
 
 class TrainWorker(_BaseWorker):
-    """在子进程中运行训练脚本，解析 epoch 进度。"""
+    """在子进程中运行训练脚本，解析 epoch 进度和训练指标。"""
 
     progress = Signal(int)
+    metrics = Signal(dict)  # {epoch, box_loss, seg_loss, cls_loss, dfl_loss, lr}
+
+    # Matches ultralytics per-epoch metrics row:
+    #   epoch/total   mem   box_loss   seg_loss   cls_loss   dfl_loss   instances   size
+    _METRIC_RE = re.compile(
+        r"\s*(\d+)\s*/\s*(\d+)\s+"       # epoch/total
+        r"(\S+)\s+"                        # GPU memory
+        r"([\d.]+)\s+"                     # box_loss
+        r"([\d.]+)\s+"                     # seg_loss
+        r"([\d.]+)\s+"                     # cls_loss
+        r"([\d.]+)\s+"                     # dfl_loss
+        r"(\d+)\s+"                        # instances
+        r"(\d+)"                           # size
+    )
 
     def _on_line(self, line: str) -> None:
+        # Try structured metrics first
+        mm = self._METRIC_RE.search(line)
+        if mm:
+            cur, total = int(mm.group(1)), int(mm.group(2))
+            if 1 <= cur <= total and total >= 10:
+                self.progress.emit(cur)
+                self.metrics.emit({
+                    "epoch": cur,
+                    "total": total,
+                    "box_loss": float(mm.group(4)),
+                    "seg_loss": float(mm.group(5)),
+                    "cls_loss": float(mm.group(6)),
+                    "dfl_loss": float(mm.group(7)),
+                })
+            return
+
+        # Fallback: simple epoch detection
         m = re.search(r"\b(\d+)\s*/\s*(\d+)\b", line)
         if not m:
             return
@@ -93,6 +124,7 @@ class TrainWorker(_BaseWorker):
             )
         ):
             self.progress.emit(cur)
+            self.metrics.emit({"epoch": cur, "total": total})
 
 
 class InferWorker(_BaseWorker):

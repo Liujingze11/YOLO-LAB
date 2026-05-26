@@ -770,6 +770,7 @@ class TrainTab(QWidget):
         self._train_worker = TrainWorker(cmd)
         self._train_worker.log_line.connect(self._append_train_log)
         self._train_worker.progress.connect(self._on_train_progress)
+        self._train_worker.metrics.connect(self._on_train_metrics)
         self._train_worker.failed.connect(self._on_train_failed)
         self._train_worker.finished_ok.connect(self._on_train_done)
         self._train_worker.stopped.connect(self._on_train_stopped)
@@ -783,6 +784,16 @@ class TrainTab(QWidget):
     @Slot(int)
     def _on_train_progress(self, pct: int) -> None:
         self.tr_progress.setValue(pct)
+
+    @Slot(dict)
+    def _on_train_metrics(self, d: dict) -> None:
+        epoch = d.get("epoch", "?")
+        total = d.get("total", "?")
+        parts = [f"Epoch {epoch}/{total}"]
+        for key, label in [("box_loss", "box"), ("seg_loss", "seg"), ("cls_loss", "cls"), ("dfl_loss", "dfl")]:
+            if key in d:
+                parts.append(f"{label}={d[key]:.3f}")
+        self.tr_progress.setFormat("  ".join(parts))
 
     @Slot()
     def _on_stop_train(self):
