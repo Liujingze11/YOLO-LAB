@@ -11,12 +11,12 @@ if sys.platform == "linux":
         _binaries.append((str(_expat_path), "."))
 
 a = Analysis(
-    [str(PROJECT_ROOT / "gui" / "gui" / "main.py")],
+    [str(PROJECT_ROOT / "gui" / "main.py")],
     pathex=[str(PROJECT_ROOT)],
     binaries=_binaries,
     datas=[
         (str(PROJECT_ROOT / "gui" / "locales"), "locales"),
-        (str(PROJECT_ROOT / "gui" / "gui" / "infer_task_params.json"), "gui"),
+        (str(PROJECT_ROOT / "gui" / "infer_task_params.json"), "gui"),
         (str(PROJECT_ROOT / "shared"), "shared"),
     ],
     hiddenimports=[

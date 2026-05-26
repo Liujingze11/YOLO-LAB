@@ -20,7 +20,7 @@ def get_app_root() -> Path:
     """Return the application root directory (works in dev and frozen modes)."""
     if is_frozen():
         return Path(sys.executable).parent
-    return Path(__file__).resolve().parent.parent
+    return Path(__file__).resolve().parent
 
 
 def get_user_data_dir() -> Path:
@@ -55,7 +55,7 @@ def get_preset_file() -> Path:
     """Return the path to presets.json (in user data dir when frozen)."""
     if is_frozen():
         return get_user_data_dir() / "presets.json"
-    return Path(__file__).resolve().parent.parent / "gui" / "presets.json"
+    return Path(__file__).resolve().parent / "presets.json"
 
 
 # Repository root: .../yolo_lab_gui

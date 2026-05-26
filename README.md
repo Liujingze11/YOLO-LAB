@@ -27,7 +27,7 @@ conda activate yolo
 pip install -r gui/requirements.txt
 
 # 启动 GUI
-python gui/gui/main.py
+python gui/main.py
 ```
 
 ### 下载安装包（推荐）

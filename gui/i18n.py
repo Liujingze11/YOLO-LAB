@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-LOCALE_DIR = Path(__file__).resolve().parent.parent / "locales"
+LOCALE_DIR = Path(__file__).resolve().parent / "locales"
 AVAILABLE_LANGS = {"zh": "中文", "en": "English", "fr": "Français", "es": "Español"}
 
 

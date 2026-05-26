@@ -10,7 +10,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent
 
 
 class _BaseWorker(QThread):
@@ -48,8 +48,9 @@ class _BaseWorker(QThread):
                 if stripped:
                     self.log_line.emit(stripped)
                     self._on_line(stripped)
-        except (IOError, OSError):
-            pass
+        except Exception as e:
+            # stdout read error (e.g. encoding issue) — not fatal, report what we can
+            self.log_line.emit(f"[worker] stdout read error: {e}")
 
         self._process.wait()
         if self._aborted:

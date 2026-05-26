@@ -208,5 +208,10 @@
     "gpu.dev_needs_cuda_torch": "检测到 {name}\n当前 Python 环境安装的是 CPU 版 PyTorch，需要替换为 CUDA 版本才能使用 GPU。\n是否自动安装？（约 2.5 GB，可能需要几分钟）",
     "gpu.install_title": "安装 CUDA PyTorch",
     "gpu.install_success": "CUDA PyTorch 安装完成！请重启应用以启用 GPU 加速。",
-    "gpu.install_failed": "安装失败"
+    "gpu.install_failed": "安装失败",
+    "validate.no_data_yaml": "请选择 data.yaml 配置文件",
+    "validate.data_yaml_missing": "data.yaml 文件不存在：",
+    "validate.model_missing": "模型文件不存在：",
+    "validate.no_results_dir": "请选择结果保存目录",
+    "validate.no_exp_name": "请输入实验名称"
 }

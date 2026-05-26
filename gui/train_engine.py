@@ -11,7 +11,7 @@ import argparse
 from pathlib import Path
 
 # 子进程入口 — 确保项目根和 GUI 目录在 sys.path 中
-_gui_root = Path(__file__).resolve().parent.parent
+_gui_root = Path(__file__).resolve().parent
 sys.path.insert(0, str(_gui_root))
 sys.path.insert(0, str(_gui_root.parent))  # project root for shared imports
 
@@ -44,7 +44,7 @@ from shared.train_core import (
 
 # ── 国际化支持 ──────────────────────────────────────────────
 
-_LOCALE_DIR = Path(__file__).resolve().parent.parent / "locales"
+_LOCALE_DIR = Path(__file__).resolve().parent / "locales"
 
 
 def _load_locale(lang: str) -> dict:

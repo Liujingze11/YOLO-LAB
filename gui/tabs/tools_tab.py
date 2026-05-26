@@ -34,7 +34,7 @@ from gui.widgets import (
 )
 from gui.workers import ToolWorker
 
-ROOT = Path(__file__).resolve().parent.parent.parent
+ROOT = Path(__file__).resolve().parent.parent
 
 
 class ToolsTab(QWidget):

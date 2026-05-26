@@ -20,7 +20,7 @@ _ENGINE_DIR = Path(__file__).resolve().parent
 _DEFAULT_TASK_PARAMS = _ENGINE_DIR / "infer_task_params.json"
 
 # ── i18n locale helpers ─────────────────────────────────────
-_LOCALE_DIR = Path(__file__).resolve().parent.parent / "locales"
+_LOCALE_DIR = Path(__file__).resolve().parent / "locales"
 _loc = None  # set in __main__
 
 def _load_locale(lang: str) -> dict:

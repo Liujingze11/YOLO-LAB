@@ -7,7 +7,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 # Also add project root so shared package is importable
@@ -175,6 +175,8 @@ def main():
 
 def _run_engine_mode():
     """Entry point when launched as --engine-{train,infer,tool} by a subprocess."""
+    import traceback
+
     # Inject GPU bundle path so the subprocess can find CUDA torch
     from gui.gpu_manager import get_gpu_dir, has_gpu_ready_marker
     if has_gpu_ready_marker():
@@ -187,45 +189,51 @@ def _run_engine_mode():
     mode = sys.argv[1]  # e.g. "--engine-train"
     sys.argv.pop(1)
 
-    if mode == "--engine-train":
-        args = train_engine.parse_args()
-        train_engine.run_non_interactive(args)
-    elif mode == "--engine-infer":
-        import argparse
-        import gui.infer_engine as infer_engine
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--model", default=infer_engine.BEST_SEG_MODEL)
-        parser.add_argument("--source", default=infer_engine.TEST_IMAGES_DIR)
-        parser.add_argument("--save-dir", default=str(Path(infer_engine.PREDICT_DIR) / "predict_result"))
-        parser.add_argument("--conf", type=float, default=0.406)
-        parser.add_argument("--imgsz", type=int, default=640)
-        parser.add_argument("--lang", default="zh")
-        args = parser.parse_args(sys.argv[1:])
-        infer_engine._loc = infer_engine._load_locale(args.lang)
-        cfg = infer_engine.InferConfig(
-            model_path=args.model, source=args.source, save_dir=args.save_dir,
-            conf=args.conf, imgsz=args.imgsz,
-            task_param_file=str(infer_engine._ENGINE_DIR / "infer_task_params.json"),
-            out_suffix="_overlay.jpg",
-        )
-        inferencer = infer_engine.YOLOInferencer(cfg)
-        inferencer.run()
-    elif mode == "--engine-tool":
-        import json
-        import importlib
-        tool_args = json.loads(sys.argv[1])
-        tool_idx = tool_args.pop("_tool_idx")
+    try:
+        if mode == "--engine-train":
+            args = train_engine.parse_args()
+            train_engine.run_non_interactive(args)
+        elif mode == "--engine-infer":
+            import argparse
+            import gui.infer_engine as infer_engine
+            parser = argparse.ArgumentParser()
+            parser.add_argument("--model", default=infer_engine.BEST_SEG_MODEL)
+            parser.add_argument("--source", default=infer_engine.TEST_IMAGES_DIR)
+            parser.add_argument("--save-dir", default=str(Path(infer_engine.PREDICT_DIR) / "predict_result"))
+            parser.add_argument("--conf", type=float, default=0.406)
+            parser.add_argument("--imgsz", type=int, default=640)
+            parser.add_argument("--lang", default="zh")
+            args = parser.parse_args(sys.argv[1:])
+            infer_engine._loc = infer_engine._load_locale(args.lang)
+            cfg = infer_engine.InferConfig(
+                model_path=args.model, source=args.source, save_dir=args.save_dir,
+                conf=args.conf, imgsz=args.imgsz,
+                task_param_file=str(infer_engine._ENGINE_DIR / "infer_task_params.json"),
+                out_suffix="_overlay.jpg",
+            )
+            inferencer = infer_engine.YOLOInferencer(cfg)
+            inferencer.run()
+        elif mode == "--engine-tool":
+            import json
+            import importlib
+            tool_args = json.loads(sys.argv[1])
+            tool_idx = tool_args.pop("_tool_idx")
 
-        TOOL_MODULES = [
-            "tools.dataset_tools.create_empty_labels",
-            "tools.dataset_tools.split_train_val.split_random_with_labels",
-            "tools.dataset_tools.split_train_val_test.split_random_with_labels",
-            "tools.dataset_tools.split_train_val.split_every_5th_with_labels",
-            "tools.dataset_tools.split_images_only.split_random_images_only",
-            "tools.dataset_tools.split_images_only.split_every_5th_images_only",
-        ]
-        mod = importlib.import_module(TOOL_MODULES[tool_idx])
-        mod.run(**tool_args)
+            TOOL_MODULES = [
+                "tools.dataset_tools.create_empty_labels",
+                "tools.dataset_tools.split_train_val.split_random_with_labels",
+                "tools.dataset_tools.split_train_val_test.split_random_with_labels",
+                "tools.dataset_tools.split_train_val.split_every_5th_with_labels",
+                "tools.dataset_tools.split_images_only.split_random_images_only",
+                "tools.dataset_tools.split_images_only.split_every_5th_images_only",
+            ]
+            mod = importlib.import_module(TOOL_MODULES[tool_idx])
+            mod.run(**tool_args)
+    except SystemExit:
+        raise
+    except Exception as e:
+        traceback.print_exc()
+        sys.exit(1)
     sys.exit(0)
 
 

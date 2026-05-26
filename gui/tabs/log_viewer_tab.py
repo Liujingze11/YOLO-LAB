@@ -28,7 +28,7 @@ from gui.widgets import (
 from gui.i18n import tr
 from gui.utils import log_append, open_file_with_default_app, open_dir_safe, load_csv_log
 
-ROOT = Path(__file__).resolve().parent.parent.parent
+ROOT = Path(__file__).resolve().parent.parent
 
 
 class LogViewerTab(QWidget):
