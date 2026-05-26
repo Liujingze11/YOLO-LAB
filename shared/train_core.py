@@ -3,7 +3,6 @@ import os
 import yaml
 import shutil
 from pathlib import Path
-from ultralytics import YOLO
 
 
 def list_experiments(results_dir: str) -> list:
@@ -100,6 +99,7 @@ def count_val_label_stats(config) -> tuple:
 
 
 def get_val_metrics(best_pt_path: str, config) -> object:
+    from ultralytics import YOLO
     model = YOLO(best_pt_path)
     val_name = f"{config.experiment_name}_tmp_val"
     val_dir = os.path.join(config.results_dir, val_name)
