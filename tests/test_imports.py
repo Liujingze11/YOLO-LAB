@@ -1,9 +1,9 @@
 """Smoke test: verify all modules import correctly."""
 import sys
+import pytest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-# GUI needs its dir too
 sys.path.insert(0, str(Path(__file__).resolve().parent / "gui"))
 
 
@@ -25,11 +25,14 @@ def test_shared_train_core():
 
 
 def test_gui_utils():
+    pytest.importorskip("PySide6")
     from gui.utils import engine_cmd, log_append, load_presets
     assert engine_cmd is not None
 
 
 def test_gui_tabs():
+    pytest.importorskip("PySide6")
+    pytest.importorskip("torch")
     from gui.tabs.train_tab import TrainTab
     from gui.tabs.infer_tab import InferTab
     from gui.tabs.tools_tab import ToolsTab
@@ -39,11 +42,14 @@ def test_gui_tabs():
 
 
 def test_gui_workers():
+    pytest.importorskip("PySide6")
     from gui.workers import TrainWorker, InferWorker, ToolWorker
     assert TrainWorker is not None
 
 
 def test_gui_gpu_manager():
+    pytest.importorskip("PySide6")
+    pytest.importorskip("torch")
     from gui.gpu_manager import check_gpu_capability, is_cuda_available
     result = check_gpu_capability()
     assert "status" in result
