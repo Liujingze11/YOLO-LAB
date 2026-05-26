@@ -95,7 +95,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: YoloLab-${{ github.ref_name }}-x86_64.AppImage
-          path: packaging/dist/YoloLab-${{ github.ref_name }}-x86_64.AppImage
+          path: dist/YoloLab-${{ github.ref_name }}-x86_64.AppImage
 
   build-macos:
     runs-on: macos-latest
@@ -125,7 +125,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: YoloLab-${{ github.ref_name }}-${{ runner.arch }}.dmg
-          path: packaging/dist/YoloLab-${{ github.ref_name }}-*.dmg
+          path: dist/YoloLab-${{ github.ref_name }}-*.dmg
 
   build-gpu-bundle:
     runs-on: ubuntu-latest

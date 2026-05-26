@@ -12,7 +12,7 @@ if sys.platform == "linux":
 
 a = Analysis(
     [str(PROJECT_ROOT / "gui" / "main.py")],
-    pathex=[str(PROJECT_ROOT)],
+    pathex=[str(PROJECT_ROOT), str(PROJECT_ROOT / "gui")],
     binaries=_binaries,
     datas=[
         (str(PROJECT_ROOT / "gui" / "locales"), "locales"),
