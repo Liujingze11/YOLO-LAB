@@ -11,7 +11,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 
-from gui.paths import get_user_data_dir
+from gui.paths import get_user_data_dir, is_frozen
 from gui.i18n import tr
 
 
@@ -25,6 +25,9 @@ def get_gpu_ready_file() -> Path:
 
 def is_cuda_available() -> bool:
     """Check if CUDA torch is already available."""
+    gpu_dir = str(get_gpu_dir())
+    if has_gpu_ready_marker() and gpu_dir not in sys.path:
+        sys.path.insert(0, gpu_dir)
     try:
         import torch
         return torch.cuda.is_available()
@@ -67,7 +70,9 @@ def check_gpu_capability() -> dict:
 
     Returns:
         {
-            "status": "cuda_ready" | "needs_download" | "no_nvidia" | "has_amd" | "macos_mps" | "cpu_only",
+            "status": "cuda_ready" | "needs_download" | "needs_restart"
+                     | "dev_needs_cuda_torch" | "no_nvidia" | "has_amd"
+                     | "macos_mps" | "cpu_only",
             "gpu_name": str or None,
             "download_size_gb": float or None,
             "message": str,
@@ -85,21 +90,38 @@ def check_gpu_capability() -> dict:
             pass
         return {"status": "cpu_only", "gpu_name": None, "download_size_gb": None, "message": ""}
 
-    # Already has CUDA
+    # Already has CUDA torch working
     if is_cuda_available():
         import torch
         name = torch.cuda.get_device_name(0) if torch.cuda.device_count() > 0 else "NVIDIA GPU"
         return {"status": "cuda_ready", "gpu_name": name, "download_size_gb": None, "message": ""}
 
+    # GPU bundle installed but not yet loaded (needs restart)
+    if has_gpu_ready_marker():
+        return {
+            "status": "needs_restart",
+            "gpu_name": None,
+            "download_size_gb": None,
+            "message": tr("gpu.restart_needed"),
+        }
+
     # Check NVIDIA driver
     has_nvidia, gpu_name = _check_nvidia_driver()
     if has_nvidia:
-        return {
-            "status": "needs_download",
-            "gpu_name": gpu_name,
-            "download_size_gb": 2.5,
-            "message": tr("gpu.download_prompt").format(name=gpu_name, size="2.5"),
-        }
+        if is_frozen():
+            return {
+                "status": "needs_download",
+                "gpu_name": gpu_name,
+                "download_size_gb": 2.5,
+                "message": tr("gpu.download_prompt").format(name=gpu_name, size="2.5"),
+            }
+        else:
+            return {
+                "status": "dev_needs_cuda_torch",
+                "gpu_name": gpu_name,
+                "download_size_gb": None,
+                "message": tr("gpu.dev_needs_cuda_torch").format(name=gpu_name),
+            }
 
     # Check AMD
     if _check_amd_driver():
@@ -168,3 +190,61 @@ class GpuDownloadWorker(QThread):
     def _cleanup(self) -> None:
         if self._tmp.is_file():
             self._tmp.unlink(missing_ok=True)
+
+
+class GpuInstallWorker(QThread):
+    """Background thread for pip-installing CUDA torch in dev mode."""
+    log_line = Signal(str)
+    finished = Signal(bool, str)
+
+    def __init__(self):
+        super().__init__()
+        self._process: subprocess.Popen | None = None
+        self._aborted = False
+
+    def run(self) -> None:
+        index_url = "https://download.pytorch.org/whl/cu121"
+        cmd = [
+            sys.executable, "-m", "pip", "install",
+            "--force-reinstall",
+            "torch", "torchvision",
+            "--index-url", index_url,
+        ]
+        try:
+            self._process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+            )
+        except Exception as e:
+            self.finished.emit(False, str(e))
+            return
+
+        for line in self._process.stdout:
+            if self._aborted:
+                self._process.terminate()
+                self._process.wait()
+                return
+            stripped = line.rstrip()
+            if stripped:
+                self.log_line.emit(stripped)
+
+        self._process.wait()
+        if self._aborted:
+            return
+        if self._process.returncode == 0:
+            self.finished.emit(True, "CUDA torch installed")
+        else:
+            self.finished.emit(False, f"pip exit code: {self._process.returncode}")
+
+    def stop(self) -> None:
+        self._aborted = True
+        if self._process and self._process.poll() is None:
+            self._process.terminate()
+            try:
+                self._process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self._process.kill()
+                self._process.wait()

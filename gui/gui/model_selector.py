@@ -126,6 +126,9 @@ class DownloadDialog(QDialog):
             pct = current * 100 // total if total else 0
             self._status.setText(f"{current // 1048576}MB / {total // 1048576}MB  ({pct}%)")
 
+    def set_status_text(self, text: str) -> None:
+        self._status.setText(text[:100])
+
     def set_error(self, msg: str) -> None:
         self._label.setText(tr("model.dialog.failed", filename=self._filename))
         self._status.setText(msg[:80])

@@ -204,5 +204,9 @@
     "gpu.install_manual": "Automatic download failed. Please visit https://pytorch.org to download CUDA 12.1, install it, then restart the app.",
     "gpu.restart_needed": "Installation complete, please restart the app",
     "gpu.device_cpu": "CPU",
-    "gpu.device_gpu_download": "GPU (CUDA download required)"
+    "gpu.device_gpu_download": "GPU (CUDA download required)",
+    "gpu.dev_needs_cuda_torch": "Detected {name}\nYour Python environment has CPU-only PyTorch. It needs to be replaced with the CUDA version to use GPU.\nInstall automatically? (~2.5 GB, may take a few minutes)",
+    "gpu.install_title": "Install CUDA PyTorch",
+    "gpu.install_success": "CUDA PyTorch installed! Please restart the app to enable GPU acceleration.",
+    "gpu.install_failed": "Installation failed"
 }

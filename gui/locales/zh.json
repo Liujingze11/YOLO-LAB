@@ -204,5 +204,9 @@
     "gpu.install_manual": "自动下载失败。请手动访问 https://pytorch.org 下载 CUDA 12.1 版本，安装后重启应用。",
     "gpu.restart_needed": "安装完成，请重启应用",
     "gpu.device_cpu": "CPU",
-    "gpu.device_gpu_download": "GPU (需下载 CUDA 组件)"
+    "gpu.device_gpu_download": "GPU (需下载 CUDA 组件)",
+    "gpu.dev_needs_cuda_torch": "检测到 {name}\n当前 Python 环境安装的是 CPU 版 PyTorch，需要替换为 CUDA 版本才能使用 GPU。\n是否自动安装？（约 2.5 GB，可能需要几分钟）",
+    "gpu.install_title": "安装 CUDA PyTorch",
+    "gpu.install_success": "CUDA PyTorch 安装完成！请重启应用以启用 GPU 加速。",
+    "gpu.install_failed": "安装失败"
 }
