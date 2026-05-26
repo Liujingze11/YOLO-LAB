@@ -7,13 +7,13 @@ import os
 import sys
 import tempfile
 import json
-import yaml
-import shutil
 import argparse
 from pathlib import Path
 
-# 子进程入口 — 确保项目根在 sys.path 中
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# 子进程入口 — 确保项目根和 GUI 目录在 sys.path 中
+_gui_root = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_gui_root))
+sys.path.insert(0, str(_gui_root.parent))  # project root for shared imports
 
 # matplotlib 子进程兼容：非交互后端 + 防止损坏字体导致崩溃
 if "MPLBACKEND" not in os.environ:
@@ -22,27 +22,36 @@ if "MPLBACKEND" not in os.environ:
 import matplotlib.font_manager as _fm
 _original_addfont = _fm.FontManager.addfont
 
+
 def _safe_addfont(self, path):
     try:
         _original_addfont(self, path)
     except RuntimeError:
         pass  # 跳过 FreeType 无法解析的损坏字体文件
 
+
 _fm.FontManager.addfont = _safe_addfont
 
+import yaml
 from ultralytics import YOLO
 
-from gui.config import TrainConfig
-from gui.train_logger import append_train_log, append_full_val_log
+from shared.config import TrainConfig
+from shared.train_logger import append_train_log, append_full_val_log
+from shared.train_core import (
+    build_train_kwargs, count_val_label_stats, get_val_labels_dir,
+    get_val_metrics, list_experiments,
+)
 
 # ── 国际化支持 ──────────────────────────────────────────────
 
 _LOCALE_DIR = Path(__file__).resolve().parent.parent / "locales"
 
+
 def _load_locale(lang: str) -> dict:
     path = _LOCALE_DIR / f"{lang}.json"
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
+
 
 def _t(loc: dict, key: str, **kwargs) -> str:
     text = loc.get(key, key)
@@ -53,22 +62,11 @@ def _t(loc: dict, key: str, **kwargs) -> str:
             pass
     return text
 
+
 _loc: dict = {}
 
 
-def list_experiments(results_dir):
-    """扫描 results_dir 目录下的所有子文件夹，获取历史实验文件夹列表。"""
-    if not os.path.exists(results_dir):
-        return []
-    folders = sorted(
-        name for name in os.listdir(results_dir)
-        if os.path.isdir(os.path.join(results_dir, name))
-    )
-    return folders
-
-
 def override_config_from_args(config, args):
-    """使用命令行参数覆盖默认配置。"""
     for attr in ("epochs", "imgsz", "batch", "device", "data_yaml",
                  "model_file", "results_dir", "log_dir"):
         val = getattr(args, attr, None)
@@ -80,7 +78,6 @@ def override_config_from_args(config, args):
 
 
 def _resolve_data_yaml(data_yaml_path: str) -> str:
-    """将 data.yaml 中的相对 path 解析为绝对路径，写入临时文件后返回其路径。"""
     yaml_dir = os.path.dirname(os.path.abspath(data_yaml_path))
     with open(data_yaml_path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
@@ -93,109 +90,6 @@ def _resolve_data_yaml(data_yaml_path: str) -> str:
         print(_t(_loc, "train.engine.fix_path", old=path_val, new=data['path']))
         return tmp.name
     return data_yaml_path
-
-
-# ── 数据增强 ──────────────────────────────────────────────
-
-def build_train_kwargs(config, use_augment):
-    kwargs = {
-        "data": config.data_yaml,
-        "epochs": config.epochs,
-        "imgsz": config.imgsz,
-        "batch": config.batch,
-        "device": config.device,
-        "project": config.results_dir,
-        "name": config.experiment_name,
-        "exist_ok": True,  # 使用精确实验名，避免 YOLO 自动追加后缀
-    }
-    if use_augment:
-        kwargs.update({
-            "hsv_h": config.hsv_h, "hsv_s": config.hsv_s, "hsv_v": config.hsv_v,
-            "degrees": config.degrees, "translate": config.translate,
-            "scale": config.scale, "shear": config.shear,
-            "perspective": config.perspective, "flipud": config.flipud,
-            "fliplr": config.fliplr, "mosaic": config.mosaic,
-            "mixup": config.mixup, "copy_paste": config.copy_paste,
-        })
-    return kwargs
-
-
-# ── 数据集与验证 ──────────────────────────────────────────
-
-def get_class_names_from_data_yaml(data_yaml_path):
-    with open(data_yaml_path, "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    names = data.get("names", {})
-    if isinstance(names, list):
-        return {i: name for i, name in enumerate(names)}
-    elif isinstance(names, dict):
-        return {int(k): v for k, v in names.items()}
-    return {}
-
-
-def get_val_labels_dir(data_yaml_path):
-    with open(data_yaml_path, "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    root_path = data.get("path", "")
-    val_path = data.get("val", "")
-    if not val_path:
-        return None
-    if root_path and not os.path.isabs(val_path):
-        val_path = os.path.join(root_path, val_path)
-    val_path = os.path.normpath(val_path)
-    parts = val_path.split(os.sep)
-    if "images" in parts:
-        idx = parts.index("images")
-        parts[idx] = "labels"
-        return os.path.normpath(os.sep.join(parts))
-    parent_dir = os.path.dirname(os.path.dirname(val_path))
-    val_name = os.path.basename(val_path)
-    return os.path.join(parent_dir, "labels", val_name)
-
-
-def count_val_label_stats(config):
-    val_labels_dir = get_val_labels_dir(config.data_yaml)
-    if not val_labels_dir or not os.path.exists(val_labels_dir):
-        return {}, {}
-    class_names = get_class_names_from_data_yaml(config.data_yaml)
-    class_image_counts = {name: 0 for name in class_names.values()}
-    class_instance_counts = {name: 0 for name in class_names.values()}
-    for file_name in os.listdir(val_labels_dir):
-        if not file_name.endswith(".txt"):
-            continue
-        file_path = os.path.join(val_labels_dir, file_name)
-        appeared = set()
-        with open(file_path, "r", encoding="utf-8") as f:
-            lines = [line.strip() for line in f if line.strip()]
-        for line in lines:
-            parts = line.split()
-            if len(parts) < 1:
-                continue
-            try:
-                class_id = int(float(parts[0]))
-            except ValueError:
-                continue
-            class_name = class_names.get(class_id, f"class_{class_id}")
-            class_instance_counts[class_name] = class_instance_counts.get(class_name, 0) + 1
-            appeared.add(class_name)
-        for class_name in appeared:
-            class_image_counts[class_name] = class_image_counts.get(class_name, 0) + 1
-    return class_image_counts, class_instance_counts
-
-
-def get_val_metrics(best_pt_path, config):
-    model = YOLO(best_pt_path)
-    val_name = f"{config.experiment_name}_tmp_val"
-    val_dir = os.path.join(config.results_dir, val_name)
-    try:
-        metrics = model.val(
-            data=config.data_yaml, imgsz=config.imgsz, batch=config.batch,
-            device=config.device, plots=False, save_txt=False, save_json=False,
-            visualize=False, project=config.results_dir, name=val_name,
-        )
-        return metrics
-    finally:
-        shutil.rmtree(val_dir, ignore_errors=True)
 
 
 def log_validation_result(config, mode, notes=""):
@@ -217,6 +111,7 @@ def log_validation_result(config, mode, notes=""):
 
 
 # ── 训练执行（非交互）─────────────────────────────────────
+
 
 def execute_new_training(config, use_augment: bool) -> None:
     append_train_log(config, mode="new_train", status="started",
@@ -272,7 +167,6 @@ def execute_train_from_previous_best(config, selected_exp: str, use_augment: boo
 
 
 def run_non_interactive(args):
-    """根据命令行参数直接运行训练，不弹出任何交互提示。"""
     global _loc
     _loc = _load_locale(args.lang)
     config = TrainConfig()
@@ -320,6 +214,7 @@ def run_non_interactive(args):
 
 
 # ── 子进程入口 ────────────────────────────────────────────
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="YOLO training engine (non-interactive)")

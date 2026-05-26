@@ -1,19 +1,28 @@
 import os
+import sys
 os.environ["MPLBACKEND"] = "Agg"
 
 import json
 import locale
-import yaml
 import shutil
 import argparse
 from pathlib import Path
+
+# Add project root to sys.path for shared imports
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+
 from ultralytics import YOLO
 from config import TrainConfig
 from train_logger import append_train_log, append_full_val_log
+from shared.train_core import (
+    build_train_kwargs, count_val_label_stats, get_val_labels_dir,
+    get_val_metrics, list_experiments,
+)
 
 # ── i18n ──────────────────────────────────────────────────
 
 LOCALE_DIR = Path(__file__).resolve().parent.parent / "locales"
+
 
 def _detect_lang():
     try:
@@ -26,10 +35,12 @@ def _detect_lang():
         pass
     return "en"
 
+
 def _load_locale(lang):
     path = LOCALE_DIR / f"{lang}.json"
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
+
 
 def _t(loc, key, **kwargs):
     text = loc.get(key, key)
@@ -40,12 +51,13 @@ def _t(loc, key, **kwargs):
             pass
     return text
 
-# ── 配置 ──────────────────────────────────────────────────
 
+_loc = {}
 CONFIG = TrainConfig()
 
 
 # ── 工具函数 ──────────────────────────────────────────────
+
 
 def ask_confirm_train(mode, pt_path, config):
     print(f"\n------------------------------")
@@ -63,21 +75,24 @@ def ask_confirm_train(mode, pt_path, config):
     return True
 
 
-def list_experiments(results_dir):
-    if not os.path.exists(results_dir):
-        print(f"\n{_t(_loc, 'results.not_found', dir=results_dir)}")
-        return []
+def ask_use_augment(config):
+    status = _t(_loc, "augment.status_on") if config.use_augment else _t(_loc, "augment.status_off")
+    print(f"\n------------------------------")
+    print(_t(_loc, "augment.title"))
+    print(_t(_loc, "augment.current", status=status))
+    print("------------------------------")
 
-    folders = []
-    for name in os.listdir(results_dir):
-        full_path = os.path.join(results_dir, name)
-        if os.path.isdir(full_path):
-            folders.append(name)
-    folders.sort()
-    return folders
+    choice = input(_t(_loc, "augment.prompt")).strip().lower()
+    if choice == "y":
+        return True
+    elif choice == "n":
+        return False
+    else:
+        return config.use_augment
 
 
 # ── 命令行参数 ────────────────────────────────────────────
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="YOLO training script")
@@ -104,128 +119,7 @@ def override_config_from_args(config, args):
     return config
 
 
-# ── 数据增强 ──────────────────────────────────────────────
-
-def ask_use_augment(config):
-    status = _t(_loc, "augment.status_on") if config.use_augment else _t(_loc, "augment.status_off")
-    print(f"\n------------------------------")
-    print(_t(_loc, "augment.title"))
-    print(_t(_loc, "augment.current", status=status))
-    print("------------------------------")
-
-    choice = input(_t(_loc, "augment.prompt")).strip().lower()
-    if choice == "y":
-        return True
-    elif choice == "n":
-        return False
-    else:
-        return config.use_augment
-
-
-def build_train_kwargs(config, use_augment):
-    kwargs = {
-        "data": config.data_yaml,
-        "epochs": config.epochs,
-        "imgsz": config.imgsz,
-        "batch": config.batch,
-        "device": config.device,
-        "project": config.results_dir,
-        "name": config.experiment_name,
-        "plots": False,
-    }
-    if use_augment:
-        kwargs.update({
-            "hsv_h": config.hsv_h, "hsv_s": config.hsv_s, "hsv_v": config.hsv_v,
-            "degrees": config.degrees, "translate": config.translate,
-            "scale": config.scale, "shear": config.shear,
-            "perspective": config.perspective, "flipud": config.flipud,
-            "fliplr": config.fliplr, "mosaic": config.mosaic,
-            "mixup": config.mixup, "copy_paste": config.copy_paste,
-        })
-    return kwargs
-
-
-# ── 数据集与验证 ──────────────────────────────────────────
-
-def get_class_names_from_data_yaml(data_yaml_path):
-    with open(data_yaml_path, "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    names = data.get("names", {})
-    if isinstance(names, list):
-        return {i: name for i, name in enumerate(names)}
-    elif isinstance(names, dict):
-        return {int(k): v for k, v in names.items()}
-    else:
-        return {}
-
-
-def get_val_labels_dir(data_yaml_path):
-    with open(data_yaml_path, "r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    root_path = data.get("path", "")
-    val_path = data.get("val", "")
-    if not val_path:
-        return None
-    if root_path and not os.path.isabs(val_path):
-        val_path = os.path.join(root_path, val_path)
-    val_path = os.path.normpath(val_path)
-    parts = val_path.split(os.sep)
-    if "images" in parts:
-        idx = parts.index("images")
-        parts[idx] = "labels"
-        return os.path.normpath(os.sep.join(parts))
-    parent_dir = os.path.dirname(os.path.dirname(val_path))
-    val_name = os.path.basename(val_path)
-    return os.path.join(parent_dir, "labels", val_name)
-
-
-def count_val_label_stats(config):
-    val_labels_dir = get_val_labels_dir(config.data_yaml)
-    if not val_labels_dir or not os.path.exists(val_labels_dir):
-        print(f"\n{_t(_loc, 'val.no_labels_dir', dir=val_labels_dir)}")
-        return {}, {}
-
-    class_names = get_class_names_from_data_yaml(config.data_yaml)
-    class_image_counts = {name: 0 for name in class_names.values()}
-    class_instance_counts = {name: 0 for name in class_names.values()}
-
-    for file_name in os.listdir(val_labels_dir):
-        if not file_name.endswith(".txt"):
-            continue
-        file_path = os.path.join(val_labels_dir, file_name)
-        appeared_in_this_image = set()
-        with open(file_path, "r", encoding="utf-8") as f:
-            lines = [line.strip() for line in f if line.strip()]
-        for line in lines:
-            parts = line.split()
-            if len(parts) < 1:
-                continue
-            try:
-                class_id = int(float(parts[0]))
-            except ValueError:
-                continue
-            class_name = class_names.get(class_id, f"class_{class_id}")
-            class_instance_counts[class_name] = class_instance_counts.get(class_name, 0) + 1
-            appeared_in_this_image.add(class_name)
-        for class_name in appeared_in_this_image:
-            class_image_counts[class_name] = class_image_counts.get(class_name, 0) + 1
-
-    return class_image_counts, class_instance_counts
-
-
-def get_val_metrics(best_pt_path, config):
-    model = YOLO(best_pt_path)
-    val_name = f"{config.experiment_name}_tmp_val"
-    val_dir = os.path.join(config.results_dir, val_name)
-    try:
-        metrics = model.val(
-            data=config.data_yaml, imgsz=config.imgsz, batch=config.batch,
-            device=config.device, plots=False, save_txt=False, save_json=False,
-            visualize=False, project=config.results_dir, name=val_name,
-        )
-        return metrics
-    finally:
-        shutil.rmtree(val_dir, ignore_errors=True)
+# ── 验证 ──────────────────────────────────────────────────
 
 
 def log_validation_result(config, mode, notes=""):
@@ -246,6 +140,7 @@ def log_validation_result(config, mode, notes=""):
 
 
 # ── 训练流程 ──────────────────────────────────────────────
+
 
 def start_new_training(config):
     mode_label = _t(_loc, "train.new_mode_label")
@@ -294,7 +189,8 @@ def resume_training(config):
                      notes=_t(_loc, "log.resume_started"))
     try:
         model = YOLO(config.last_pt)
-        model.train(resume=True)
+        model.train(resume=True, data=config.data_yaml, imgsz=config.imgsz,
+                    batch=config.batch, device=config.device)
         append_train_log(config, mode="resume_train", status="finished",
                          notes=_t(_loc, "log.resume_finished"))
         log_validation_result(config, mode="resume_train", notes=_t(_loc, "log.resume_val"))
@@ -364,7 +260,6 @@ def train_from_previous_best(config):
 
 # ── 主入口 ────────────────────────────────────────────────
 
-_loc = {}
 
 def main():
     global CONFIG, _loc

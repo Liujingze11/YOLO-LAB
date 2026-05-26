@@ -17,8 +17,13 @@ a = Analysis(
     datas=[
         (str(PROJECT_ROOT / "gui" / "locales"), "locales"),
         (str(PROJECT_ROOT / "gui" / "gui" / "infer_task_params.json"), "gui"),
+        (str(PROJECT_ROOT / "shared"), "shared"),
     ],
     hiddenimports=[
+        "shared",
+        "shared.config",
+        "shared.train_logger",
+        "shared.train_core",
         "ultralytics",
         "ultralytics.nn",
         "ultralytics.nn.modules",
