@@ -213,5 +213,16 @@
     "validate.data_yaml_missing": "data.yaml 文件不存在：",
     "validate.model_missing": "模型文件不存在：",
     "validate.no_results_dir": "请选择结果保存目录",
-    "validate.no_exp_name": "请输入实验名称"
+    "validate.no_exp_name": "请输入实验名称",
+    "welcome.title": "欢迎使用 YOLO Lab",
+    "welcome.heading": "YOLO Lab",
+    "welcome.env_summary": "系统环境检测结果：",
+    "welcome.gpu_ready": "已就绪",
+    "welcome.gpu_need_setup": "需在 Device 下拉框中点击检测并安装",
+    "welcome.gpu_need_cuda": "检测到，需安装 CUDA 版 PyTorch（点击 Device 下拉框）",
+    "welcome.gpu_cpu": "未检测到，将使用 CPU 训练",
+    "welcome.models": "预训练模型",
+    "welcome.data_ready": "数据目录已就绪",
+    "welcome.tip": "提示：选择 data.yaml → 选模型 → 设参数 → 开始训练",
+    "welcome.start": "开始使用"
 }

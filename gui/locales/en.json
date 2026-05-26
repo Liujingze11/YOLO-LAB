@@ -213,5 +213,16 @@
     "validate.data_yaml_missing": "data.yaml file not found:",
     "validate.model_missing": "Model file not found:",
     "validate.no_results_dir": "Please select a results directory",
-    "validate.no_exp_name": "Please enter an experiment name"
+    "validate.no_exp_name": "Please enter an experiment name",
+    "welcome.title": "Welcome to YOLO Lab",
+    "welcome.heading": "YOLO Lab",
+    "welcome.env_summary": "System check results:",
+    "welcome.gpu_ready": "Ready",
+    "welcome.gpu_need_setup": "Setup needed — select GPU in Device dropdown",
+    "welcome.gpu_need_cuda": "Detected — install CUDA PyTorch via Device dropdown",
+    "welcome.gpu_cpu": "Not detected, will use CPU",
+    "welcome.models": "Pretrained models",
+    "welcome.data_ready": "Data directories ready",
+    "welcome.tip": "Tip: Select data.yaml → Choose a model → Set params → Start training",
+    "welcome.start": "Get Started"
 }

@@ -162,7 +162,14 @@ class MainWindow(QWidget):
         event.ignore()
 
 
+def _env_check():
+    from shared.env_check import run_checks_and_fix
+    if not run_checks_and_fix():
+        sys.exit(0)
+
+
 def main():
+    _env_check()
     app = QApplication(sys.argv)
     font = QFont()
     font.setFamilies(FONT_FAMILIES)
@@ -170,6 +177,13 @@ def main():
     app.setFont(font)
     w = MainWindow()
     w.show()
+
+    # First-run welcome wizard
+    from gui.welcome_wizard import is_first_run, WelcomeWizard
+    if is_first_run():
+        wizard = WelcomeWizard(w)
+        wizard.exec()
+
     sys.exit(app.exec())
 
 
@@ -238,6 +252,7 @@ def _run_engine_mode():
 
 
 if __name__ == "__main__":
+    _env_check()
     if len(sys.argv) > 1 and sys.argv[1].startswith("--engine-"):
         _run_engine_mode()
     else:
