@@ -24,14 +24,23 @@ def test_shared_train_core():
     assert list_experiments is not None
 
 
+def _try_import(module: str):
+    """Try importing, skip test if the module or its system deps are missing."""
+    import importlib
+    try:
+        importlib.import_module(module)
+    except ImportError as e:
+        pytest.skip(str(e))
+
+
 def test_gui_utils():
-    pytest.importorskip("PySide6")
+    _try_import("PySide6.QtCore")
     from gui.utils import engine_cmd, log_append, load_presets
     assert engine_cmd is not None
 
 
 def test_gui_tabs():
-    pytest.importorskip("PySide6")
+    _try_import("PySide6.QtCore")
     pytest.importorskip("torch")
     from gui.tabs.train_tab import TrainTab
     from gui.tabs.infer_tab import InferTab
@@ -42,13 +51,13 @@ def test_gui_tabs():
 
 
 def test_gui_workers():
-    pytest.importorskip("PySide6")
+    _try_import("PySide6.QtCore")
     from gui.workers import TrainWorker, InferWorker, ToolWorker
     assert TrainWorker is not None
 
 
 def test_gui_gpu_manager():
-    pytest.importorskip("PySide6")
+    _try_import("PySide6.QtCore")
     pytest.importorskip("torch")
     from gui.gpu_manager import check_gpu_capability, is_cuda_available
     result = check_gpu_capability()
