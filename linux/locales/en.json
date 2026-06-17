@@ -1,0 +1,61 @@
+{
+  "mode.select": "Select training mode:",
+  "mode.1": "Mode 1 - Start new training",
+  "mode.2": "Mode 2 - Resume last interrupted training",
+  "mode.3": "Mode 3 - Fine-tune from historical best.pt",
+  "mode.prompt": "Enter 1, 2, or 3 (press Enter to exit)",
+  "mode.invalid": "Invalid input. Program exited.",
+
+  "confirm.title": "About to execute: {mode}",
+  "confirm.pt_file": "PT file in use: {path}",
+  "confirm.data_yaml": "Data config file : {path}",
+  "confirm.exp_name": "Experiment name   : {name}",
+  "confirm.epochs": "Epochs            : {epochs}",
+  "confirm.prompt": "Confirm? Enter y to continue, any other key to cancel: ",
+  "confirm.cancelled": "Training cancelled.",
+
+  "augment.title": "Data Augmentation",
+  "augment.status_on": "ON",
+  "augment.status_off": "OFF",
+  "augment.current": "Current default: {status}",
+  "augment.prompt": "Enable data augmentation? Enter y for ON, n for OFF, Enter for default: ",
+
+  "resume.not_found": "No resume weights found: {path}",
+  "resume.fallback_prompt": "Start a new training instead? Enter y to continue, any other key to cancel: ",
+  "resume.cancelled": "Cancelled.",
+  "resume.failed": "Resume training failed: {err}",
+
+  "history.empty": "No historical experiments found.",
+  "history.list_title": "Historical experiments detected:",
+  "history.select_prompt": "Select experiment number to use as base model: ",
+  "history.invalid_input": "Invalid input. Cancelled.",
+  "history.out_of_range": "Number out of range. Cancelled.",
+  "history.selected": "Selected experiment: {name}",
+  "history.no_best_pt": "best.pt not found in this experiment: {path}",
+
+  "results.not_found": "Results directory not found: {dir}",
+
+  "train.new_mode_label": "Mode 1 - New training",
+  "train.resume_mode_label": "Resume training",
+  "train.finetune_mode_label": "Fine-tune from historical best.pt",
+
+  "train.completed_but_val_failed": "Training completed (weights saved), but internal validation failed: {err}",
+  "train.failed": "Training failed: {err}",
+
+  "val.no_best_pt": "best.pt not found, cannot log validation: {path}",
+  "val.no_labels_dir": "Val labels directory not found: {dir}",
+  "val.logged": "Validation results logged.",
+  "val.failed": "Failed to log validation: {err}",
+
+  "log.new_started": "New training started, augmentation={aug}",
+  "log.new_finished": "Training finished, augmentation={aug}",
+  "log.new_val": "Validation result after training",
+  "log.resume_started": "Resuming previous training",
+  "log.resume_finished": "Resumed training finished",
+  "log.resume_val": "Validation result after resuming",
+  "log.finetune_started": "Fine-tuning based on {exp}, augmentation={aug}",
+  "log.finetune_finished": "Fine-tuning based on {exp} finished, augmentation={aug}",
+  "log.finetune_val": "Validation result from fine-tuning {exp}",
+  "log.val_retry": "Retry validation after internal failure. Original error: {err}",
+  "log.failed": "{err}"
+}

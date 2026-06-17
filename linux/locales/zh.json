@@ -1,0 +1,61 @@
+{
+  "mode.select": "请选择训练模式：",
+  "mode.1": "模式1 - 开启一个新的训练",
+  "mode.2": "模式2 - 继续上次中断的训练",
+  "mode.3": "模式3 - 基于历史实验的 best.pt 再次训练",
+  "mode.prompt": "请输入 1、2 或 3，直接回车退出",
+  "mode.invalid": "输入无效，程序已退出。",
+
+  "confirm.title": "即将执行：{mode}",
+  "confirm.pt_file": "当前使用的 PT 文件：{path}",
+  "confirm.data_yaml": "数据配置文件      ：{path}",
+  "confirm.exp_name": "实验名称          ：{name}",
+  "confirm.epochs": "训练轮数 epochs   ：{epochs}",
+  "confirm.prompt": "请确认是否继续？输入 y 继续，其他任意键取消：",
+  "confirm.cancelled": "已取消本次训练。",
+
+  "augment.title": "数据增强设置",
+  "augment.status_on": "开启",
+  "augment.status_off": "关闭",
+  "augment.current": "当前默认值：{status}",
+  "augment.prompt": "是否启用数据增强？输入 y 开启，n 关闭，直接回车使用默认值：",
+
+  "resume.not_found": "没有找到上次中断训练的权重文件：{path}",
+  "resume.fallback_prompt": "是否改为开启新的训练？输入 y 继续，其他任意键取消：",
+  "resume.cancelled": "已取消操作。",
+  "resume.failed": "继续训练失败：{err}",
+
+  "history.empty": "没有找到任何历史实验文件夹。",
+  "history.list_title": "检测到以下历史实验：",
+  "history.select_prompt": "请选择要作为基础模型的实验编号：",
+  "history.invalid_input": "输入无效，已取消。",
+  "history.out_of_range": "编号超出范围，已取消。",
+  "history.selected": "你选择的实验是：{name}",
+  "history.no_best_pt": "该实验下没有找到 best.pt：{path}",
+
+  "results.not_found": "结果目录不存在：{dir}",
+
+  "train.new_mode_label": "模式1 - 开始新训练",
+  "train.resume_mode_label": "继续上次训练",
+  "train.finetune_mode_label": "基于历史 best.pt 开启新训练",
+
+  "train.completed_but_val_failed": "训练已完成（权重已保存），但内部验证失败：{err}",
+  "train.failed": "训练失败：{err}",
+
+  "val.no_best_pt": "未找到 best.pt，无法记录验证结果：{path}",
+  "val.no_labels_dir": "未找到 val 标签目录：{dir}",
+  "val.logged": "验证结果已记录到日志。",
+  "val.failed": "记录验证结果失败：{err}",
+
+  "log.new_started": "开始新训练，数据增强={aug}",
+  "log.new_finished": "训练完成，数据增强={aug}",
+  "log.new_val": "训练完成后的验证结果",
+  "log.resume_started": "继续上次训练",
+  "log.resume_finished": "继续训练完成",
+  "log.resume_val": "继续训练后的验证结果",
+  "log.finetune_started": "基于历史实验 {exp} 开始训练，数据增强={aug}",
+  "log.finetune_finished": "基于历史实验 {exp} 的训练完成，数据增强={aug}",
+  "log.finetune_val": "基于历史实验 {exp} 的验证结果",
+  "log.val_retry": "内部验证失败后的重试验证。原错误: {err}",
+  "log.failed": "{err}"
+}

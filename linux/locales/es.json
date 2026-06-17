@@ -1,0 +1,61 @@
+{
+  "mode.select": "Seleccione el modo de entrenamiento:",
+  "mode.1": "Modo 1 - Nuevo entrenamiento",
+  "mode.2": "Modo 2 - Reanudar entrenamiento interrumpido",
+  "mode.3": "Modo 3 - Ajustar desde best.pt histórico",
+  "mode.prompt": "Ingrese 1, 2 o 3 (Enter para salir)",
+  "mode.invalid": "Entrada inválida. Programa terminado.",
+
+  "confirm.title": "A punto de ejecutar: {mode}",
+  "confirm.pt_file": "Archivo PT en uso: {path}",
+  "confirm.data_yaml": "Archivo de datos  : {path}",
+  "confirm.exp_name": "Nombre experimento: {name}",
+  "confirm.epochs": "Epochs            : {epochs}",
+  "confirm.prompt": "¿Confirmar? Ingrese y para continuar, otra tecla para cancelar: ",
+  "confirm.cancelled": "Entrenamiento cancelado.",
+
+  "augment.title": "Aumento de datos",
+  "augment.status_on": "ACTIVADO",
+  "augment.status_off": "DESACTIVADO",
+  "augment.current": "Valor predeterminado: {status}",
+  "augment.prompt": "¿Activar aumento de datos? y para SÍ, n para NO, Enter para predeterminado: ",
+
+  "resume.not_found": "No se encontraron pesos de reanudación: {path}",
+  "resume.fallback_prompt": "¿Iniciar un nuevo entrenamiento? Ingrese y para continuar: ",
+  "resume.cancelled": "Cancelado.",
+  "resume.failed": "Error al reanudar entrenamiento: {err}",
+
+  "history.empty": "No se encontraron experimentos históricos.",
+  "history.list_title": "Experimentos históricos detectados:",
+  "history.select_prompt": "Seleccione el número del experimento base: ",
+  "history.invalid_input": "Entrada inválida. Cancelado.",
+  "history.out_of_range": "Número fuera de rango. Cancelado.",
+  "history.selected": "Experimento seleccionado: {name}",
+  "history.no_best_pt": "best.pt no encontrado en este experimento: {path}",
+
+  "results.not_found": "Directorio de resultados no encontrado: {dir}",
+
+  "train.new_mode_label": "Modo 1 - Nuevo entrenamiento",
+  "train.resume_mode_label": "Reanudar entrenamiento",
+  "train.finetune_mode_label": "Ajustar desde best.pt histórico",
+
+  "train.completed_but_val_failed": "Entrenamiento completado (pesos guardados), pero la validación interna falló: {err}",
+  "train.failed": "Error de entrenamiento: {err}",
+
+  "val.no_best_pt": "best.pt no encontrado, no se puede registrar la validación: {path}",
+  "val.no_labels_dir": "Directorio de etiquetas de validación no encontrado: {dir}",
+  "val.logged": "Resultados de validación registrados.",
+  "val.failed": "Error al registrar la validación: {err}",
+
+  "log.new_started": "Nuevo entrenamiento iniciado, aumento={aug}",
+  "log.new_finished": "Entrenamiento finalizado, aumento={aug}",
+  "log.new_val": "Resultado de validación después del entrenamiento",
+  "log.resume_started": "Reanudando entrenamiento anterior",
+  "log.resume_finished": "Entrenamiento reanudado finalizado",
+  "log.resume_val": "Resultado de validación después de reanudar",
+  "log.finetune_started": "Ajuste basado en {exp}, aumento={aug}",
+  "log.finetune_finished": "Ajuste basado en {exp} finalizado, aumento={aug}",
+  "log.finetune_val": "Resultado de validación del ajuste {exp}",
+  "log.val_retry": "Reintento de validación tras fallo interno. Error original: {err}",
+  "log.failed": "{err}"
+}

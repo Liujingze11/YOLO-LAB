@@ -1,0 +1,61 @@
+{
+  "mode.select": "Sélectionnez le mode d'entraînement :",
+  "mode.1": "Mode 1 - Nouvel entraînement",
+  "mode.2": "Mode 2 - Reprendre l'entraînement interrompu",
+  "mode.3": "Mode 3 - Ajuster depuis le best.pt historique",
+  "mode.prompt": "Entrez 1, 2 ou 3 (Entrée pour quitter)",
+  "mode.invalid": "Entrée invalide. Programme terminé.",
+
+  "confirm.title": "Va exécuter : {mode}",
+  "confirm.pt_file": "Fichier PT utilisé : {path}",
+  "confirm.data_yaml": "Fichier de données : {path}",
+  "confirm.exp_name": "Nom de l'expérience : {name}",
+  "confirm.epochs": "Epochs            : {epochs}",
+  "confirm.prompt": "Confirmer ? Entrez y pour continuer, autre touche pour annuler : ",
+  "confirm.cancelled": "Entraînement annulé.",
+
+  "augment.title": "Augmentation de données",
+  "augment.status_on": "ACTIVÉE",
+  "augment.status_off": "DÉSACTIVÉE",
+  "augment.current": "Valeur par défaut : {status}",
+  "augment.prompt": "Activer l'augmentation ? y pour OUI, n pour NON, Entrée pour défaut : ",
+
+  "resume.not_found": "Poids de reprise introuvables : {path}",
+  "resume.fallback_prompt": "Démarrer un nouvel entraînement ? Entrez y pour continuer : ",
+  "resume.cancelled": "Annulé.",
+  "resume.failed": "Échec de la reprise : {err}",
+
+  "history.empty": "Aucune expérience historique trouvée.",
+  "history.list_title": "Expériences historiques détectées :",
+  "history.select_prompt": "Sélectionnez le numéro de l'expérience de base : ",
+  "history.invalid_input": "Entrée invalide. Annulé.",
+  "history.out_of_range": "Numéro hors limite. Annulé.",
+  "history.selected": "Expérience sélectionnée : {name}",
+  "history.no_best_pt": "best.pt introuvable dans cette expérience : {path}",
+
+  "results.not_found": "Répertoire de résultats introuvable : {dir}",
+
+  "train.new_mode_label": "Mode 1 - Nouvel entraînement",
+  "train.resume_mode_label": "Reprendre l'entraînement",
+  "train.finetune_mode_label": "Ajuster depuis le best.pt historique",
+
+  "train.completed_but_val_failed": "Entraînement terminé (poids sauvegardés), échec de la validation interne : {err}",
+  "train.failed": "Échec de l'entraînement : {err}",
+
+  "val.no_best_pt": "best.pt introuvable, impossible d'enregistrer la validation : {path}",
+  "val.no_labels_dir": "Répertoire d'étiquettes de validation introuvable : {dir}",
+  "val.logged": "Résultats de validation enregistrés.",
+  "val.failed": "Échec de l'enregistrement de la validation : {err}",
+
+  "log.new_started": "Nouvel entraînement démarré, augmentation={aug}",
+  "log.new_finished": "Entraînement terminé, augmentation={aug}",
+  "log.new_val": "Résultat de validation après entraînement",
+  "log.resume_started": "Reprise de l'entraînement précédent",
+  "log.resume_finished": "Entraînement repris terminé",
+  "log.resume_val": "Résultat de validation après reprise",
+  "log.finetune_started": "Ajustement basé sur {exp}, augmentation={aug}",
+  "log.finetune_finished": "Ajustement basé sur {exp} terminé, augmentation={aug}",
+  "log.finetune_val": "Résultat de validation de l'ajustement {exp}",
+  "log.val_retry": "Nouvelle tentative de validation après échec interne. Erreur d'origine : {err}",
+  "log.failed": "{err}"
+}
