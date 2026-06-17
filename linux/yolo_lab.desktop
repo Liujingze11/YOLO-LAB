@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=YOLO-LAB
+Comment=YOLO Segmentation Training & Inference Toolkit
+Exec=/opt/YoloLab/YoloLab.AppImage
+Icon=yolo-lab
+Type=Application
+Categories=Science;ArtificialIntelligence;
+Terminal=false
