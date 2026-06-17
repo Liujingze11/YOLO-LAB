@@ -1,1 +1,0 @@
-# YOLO Lab GUI package
